@@ -83,57 +83,54 @@ export class MenuItemsService {
     //     }
     // ]
   async getMenuItems() {
+    let data = []
     const menuItem = await this.menuItemRepository.find({
         where:{
             parentId:IsNull()
         }
-    })
-    const queryChilldren =  await this.menuItemRepository.find({
-        where:{
-            parentId:Not(IsNull())
+    });
+    for(let i= 0;i<menuItem.length;i++){
+        let children = [];
+        const queryChilldren =  await this.menuItemRepository.find({
+            where:{
+                parentId:menuItem[i].id
+            }
+        })
+        for(let j= 0;j<queryChilldren.length;j++){
+            let children2 = [];
+            const queryChilldren2 =  await this.menuItemRepository.find({
+                where:{
+                    parentId:queryChilldren[j].id
+                }
+            })
+            for(let k= 0;k<queryChilldren2.length;k++){
+                children2[k] = {
+                    "id": queryChilldren2[k].id,
+                    "name": queryChilldren2[k].name,
+                    "url": queryChilldren2[k].url,
+                    "parentId": queryChilldren2[k].parentId,
+                    "createdAt": queryChilldren2[k].createdAt,
+                    "children": []
+                }
+            }
+            children[j] = {
+                "id": queryChilldren[j].id,
+                "name": queryChilldren[j].name,
+                "url": queryChilldren[j].url,
+                "parentId": queryChilldren[j].parentId,
+                "createdAt": queryChilldren[j].createdAt,
+                "children": children2
+            }
         }
-    })
-    const queryChilldren2 =  await this.menuItemRepository.find({
-        where:{
-            parentId:MoreThan(1)
+        data[i]={
+            "id": menuItem[i].id,
+            "name": menuItem[i].name,
+            "url": menuItem[i].url,
+            "parentId": menuItem[i].parentId,
+            "createdAt": menuItem[i].createdAt,
+            "children": children
         }
-    })
-
-    const resultChilldren2 = queryChilldren2.map(function(x){
-        let result2 =                         {
-            "id": x.id,
-            "name": x.name,
-            "url": x.url,
-            "parentId": x.parentId,
-            "createdAt": x.createdAt,
-            "children": []
-        }
-        return result2
-    })
-  const resultChilldren = queryChilldren.map(function(x){
-    const parseChildren2 = resultChilldren2.find((ld) => ld.parentId === x.id);
-    let result2 =                         {
-        "id": x.id,
-        "name": x.name,
-        "url": x.url,
-        "parentId": x.parentId,
-        "createdAt": x.createdAt,
-        "children": parseChildren2
     }
-    return result2
-  })
-  const resultEvents = menuItem.map(function (x) {
-    const parseChildren = resultChilldren.find((ld) => ld.parentId === x.id);
-    let result2 =                         {
-        "id": x.id,
-        "name": x.name,
-        "url": x.url,
-        "parentId": x.parentId,
-        "createdAt": x.createdAt,
-        "children": parseChildren
-    }
-    return result2
-  })
-  return resultEvents
+    return data;
   }
 }

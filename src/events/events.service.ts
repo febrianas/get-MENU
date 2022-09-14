@@ -93,21 +93,23 @@ export class EventsService {
     ```
      */
 
-  @Get('events')
   async getEventsWithWorkshops() {
     const queryEvents = await this.eventRepository.find()
-    const queryChilldren = await this.workShopRepository.find()
-    const resultEvents = queryEvents.map(function (x) {
-      const parseChildren = queryChilldren.find((ld) => ld.eventId === x.id);
-      let result = {
-        id:x.id,
-        name:x.name,
-        createdAt:x.createdAt,
-        workshop:parseChildren
-      }
-        return result
+    let data= [];
+    for(let i=0;i<queryEvents.length;i++){
+      let queryWork = await this.workShopRepository.find({
+        where:{
+          eventId:queryEvents[i].id
+        }
       })
-    return resultEvents
+      data[i]={
+        id:queryEvents[i].id,
+        name:queryEvents[i].name,
+        createdAt:queryEvents[i].createdAt,
+        workshops:queryWork
+      }
+    };
+    return data;
   }
 
   /*
@@ -175,25 +177,26 @@ export class EventsService {
     ]
     ```
      */
-  @Get('futureevents')
   async getFutureEventWithWorkshops() {
+    let data= [];
     const queryEvents = await this.eventRepository.find({
       where:{
         id:Not(1)
       }
     })
-
-    const queryChilldren = await this.workShopRepository.find()
-    const resultEvents = queryEvents.map(function (x) {
-      const parseChildren = queryChilldren.find((ld) => ld.eventId === x.id);
-      let result = {
-        id:x.id,
-        name:x.name,
-        createdAt:x.createdAt,
-        workshop:parseChildren
+    for(let i=0;i<queryEvents.length;i++){
+      let queryWork = await this.workShopRepository.find({
+        where:{
+          eventId:queryEvents[i].id
+        }
+      })
+      data[i]={
+        id:queryEvents[i].id,
+        name:queryEvents[i].name,
+        createdAt:queryEvents[i].createdAt,
+        workshops:queryWork
       }
-      return result
-    })
-  return resultEvents
+    };
+    return data;
   }
 }
