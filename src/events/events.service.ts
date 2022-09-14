@@ -1,4 +1,4 @@
-import { getManager, Repository } from 'typeorm';
+import { Repository } from 'typeorm';
 import { Get, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Event } from './entities/event.entity';
