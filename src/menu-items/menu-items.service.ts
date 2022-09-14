@@ -83,45 +83,35 @@ export class MenuItemsService {
     //     }
     // ]
   async getMenuItems() {
+    const menuItem = this.menuItemRepository
+    .createQueryBuilder('a')
+    .where('a.parentId = :parentId', {
+      parentId: null,
+    });
+    const dataItem = await menuItem.getRawMany();
+    const queryChilldren =  this.menuItemRepository
+    .createQueryBuilder('a')
+    .where('a.parentId != :parentId', {
+        parentId: null,
+    });
+    const dataChilldren = await queryChilldren.getRawMany();
 
-    const queryManager = getManager();
-    const queryEvents = queryManager
-      .createQueryBuilder()
-      .select([
-        'a.*',
-      ])
-      .from('MenuItem', 'a')
-      .where('parentId is null')
-    const dataEvents = await queryEvents.getRawMany();
-
-    const queryChilldren = queryManager
-    .createQueryBuilder()
-    .select([
-      'a.*',
-    ])
-    .from('MenuItem', 'a')
-  const dataChilldren = await queryChilldren.getRawMany();
-
-    const queryChilldren2 = queryManager
-    .createQueryBuilder()
-    .select([
-        'a.*',
-    ])
-    .from('MenuItem', 'a')
+    const queryChilldren2 =  this.menuItemRepository
+    .createQueryBuilder('a')
     .where('parentId > 1')
     const dataChilldren2 = await queryChilldren2.getRawMany();
 
     const resultChilldren2 = dataChilldren2.map(function(x){
         x.children = []
         return x
-      })
+    })
   const resultChilldren = dataChilldren.map(function(x){
-    const parseChildren2 = resultChilldren2.find((ld) => ld.parentId === x.parentId);
+    const parseChildren2 = resultChilldren2.find((ld) => ld.parentId === x.id);
     x.children = parseChildren2
     return x
   })
-  const resultEvents = dataEvents.map(function (x) {
-    const parseChildren = resultChilldren.find((ld) => ld.parentId === x.parentId);
+  const resultEvents = dataItem.map(function (x) {
+    const parseChildren = resultChilldren.find((ld) => ld.parentId === x.id);
     x.children = parseChildren
   })
   return resultEvents
