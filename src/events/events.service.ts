@@ -13,11 +13,8 @@ export class EventsService {
     private workShopRepository: Repository<Workshop>,
   ) {}
 
-  async getWarmupEvents()  {
-    let tes = await this.eventRepository.find();
-    let tes1 = this.eventRepository.createQueryBuilder('a');
-    let hasil = await tes1.getRawMany()
-    return hasil;
+  getWarmupEvents()  {
+    return this.eventRepository.find();;
   }
 
   /*
