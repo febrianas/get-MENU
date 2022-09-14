@@ -90,7 +90,8 @@ export class MenuItemsService {
       .select([
         'a.*',
       ])
-      .from('events', 'a')
+      .from('MenuItem', 'a')
+      .where('parentId is null')
     const dataEvents = await queryEvents.getRawMany();
 
     const queryChilldren = queryManager
@@ -98,7 +99,7 @@ export class MenuItemsService {
     .select([
       'a.*',
     ])
-    .from('children', 'a')
+    .from('MenuItem', 'a')
   const dataChilldren = await queryChilldren.getRawMany();
 
     const queryChilldren2 = queryManager
@@ -106,7 +107,8 @@ export class MenuItemsService {
     .select([
         'a.*',
     ])
-    .from('children2', 'a')
+    .from('MenuItem', 'a')
+    .where('parentId > 1')
     const dataChilldren2 = await queryChilldren2.getRawMany();
 
     const resultChilldren2 = dataChilldren2.map(function(x){
@@ -123,6 +125,5 @@ export class MenuItemsService {
     x.children = parseChildren
   })
   return resultEvents
-    // throw new Error('TODO in task 3');
   }
 }

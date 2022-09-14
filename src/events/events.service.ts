@@ -1,4 +1,4 @@
-import { Repository } from 'typeorm';
+import { getManager, Repository } from 'typeorm';
 import { Get, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Event } from './entities/event.entity';
@@ -92,7 +92,27 @@ export class EventsService {
 
   @Get('events')
   async getEventsWithWorkshops() {
-    throw new Error('TODO task 1');
+    const queryManager = getManager();
+    const queryEvents = queryManager
+      .createQueryBuilder()
+      .select([
+        'a.*',
+      ])
+      .from('event', 'a')
+    const dataEvents = await queryEvents.getRawMany();
+
+    const queryChilldren = queryManager
+    .createQueryBuilder()
+    .select([
+      'a.*',
+    ])
+    .from('workshop', 'a')
+  const dataChilldren = await queryChilldren.getRawMany();
+  const resultEvents = dataEvents.map(function (x) {
+    const parseChildren = dataChilldren.find((ld) => ld.eventId === x.id);
+    x.workshops = parseChildren
+  })
+  return resultEvents
   }
 
   /*
@@ -162,6 +182,32 @@ export class EventsService {
      */
   @Get('futureevents')
   async getFutureEventWithWorkshops() {
-    throw new Error('TODO task 2');
+    let today = new Date();
+    const dateToday = new Date(today).setHours(0, 0, 0, 0);
+    const queryManager = getManager();
+    const queryEvents = queryManager
+      .createQueryBuilder()
+      .select([
+        'a.*',
+      ])
+      .from('event', 'a')
+      .where('a.createdAt > :createdAt',{
+        createdAt:dateToday
+      })
+      .andWhere('id > 1')
+    const dataEvents = await queryEvents.getRawMany();
+
+    const queryChilldren = queryManager
+    .createQueryBuilder()
+    .select([
+      'a.*',
+    ])
+    .from('workshop', 'a')
+    const dataChilldren = await queryChilldren.getRawMany();
+    const resultEvents = dataEvents.map(function (x) {
+      const parseChildren = dataChilldren.find((ld) => ld.eventId === x.id);
+      x.workshops = parseChildren
+    })
+  return resultEvents
   }
 }
