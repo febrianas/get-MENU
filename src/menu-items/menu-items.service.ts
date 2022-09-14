@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { MenuItem } from './entities/menu-item.entity';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { IsNull, MoreThan, Not, Repository } from 'typeorm';
 
 @Injectable()
 export class MenuItemsService {
@@ -69,50 +69,70 @@ export class MenuItemsService {
     //                         "createdAt": "2021-04-27T15:35:15.000000Z",
     //                         "children": []
     //                     },
-    //                     {
-    //                         "id": 7,
-    //                         "name": "Navigating the function jungle",
-    //                         "url": "/events/reactcon/workshops/jungle",
-    //                         "parentId": 5,
-    //                         "createdAt": "2021-04-27T15:35:15.000000Z",
-    //                         "children": []
-    //                     }
+                        // {
+                        //     "id": 7,
+                        //     "name": "Navigating the function jungle",
+                        //     "url": "/events/reactcon/workshops/jungle",
+                        //     "parentId": 5,
+                        //     "createdAt": "2021-04-27T15:35:15.000000Z",
+                        //     "children": []
+                        // }
     //                 ]
     //             }
     //         ]
     //     }
     // ]
   async getMenuItems() {
-    const menuItem = this.menuItemRepository
-    .createQueryBuilder('a')
-    .where('a.parentId = :parentId', {
-      parentId: null,
-    });
-    const dataItem = await menuItem.getRawMany();
-    const queryChilldren =  this.menuItemRepository
-    .createQueryBuilder('a')
-    .where('a.parentId != :parentId', {
-        parentId: null,
-    });
-    const dataChilldren = await queryChilldren.getRawMany();
-
-    const queryChilldren2 =  this.menuItemRepository
-    .createQueryBuilder('a')
-    .where('parentId > 1')
-    const dataChilldren2 = await queryChilldren2.getRawMany();
-
-    const resultChilldren2 = dataChilldren2.map(function(x){
-        x.children = []
-        return x
+    const menuItem = await this.menuItemRepository.find({
+        where:{
+            parentId:IsNull()
+        }
     })
-  const resultChilldren = dataChilldren.map(function(x){
+    const queryChilldren =  await this.menuItemRepository.find({
+        where:{
+            parentId:Not(IsNull())
+        }
+    })
+    const queryChilldren2 =  await this.menuItemRepository.find({
+        where:{
+            parentId:MoreThan(1)
+        }
+    })
+
+    const resultChilldren2 = queryChilldren2.map(function(x){
+        let result2 =                         {
+            "id": x.id,
+            "name": x.name,
+            "url": x.url,
+            "parentId": x.parentId,
+            "createdAt": x.createdAt,
+            "children": []
+        }
+        return result2
+    })
+  const resultChilldren = queryChilldren.map(function(x){
     const parseChildren2 = resultChilldren2.find((ld) => ld.parentId === x.id);
-    x.children = parseChildren2
-    return x
+    let result2 =                         {
+        "id": x.id,
+        "name": x.name,
+        "url": x.url,
+        "parentId": x.parentId,
+        "createdAt": x.createdAt,
+        "children": parseChildren2
+    }
+    return result2
   })
-  const resultEvents = dataItem.map(function (x) {
+  const resultEvents = menuItem.map(function (x) {
     const parseChildren = resultChilldren.find((ld) => ld.parentId === x.id);
-    x.children = parseChildren
+    let result2 =                         {
+        "id": x.id,
+        "name": x.name,
+        "url": x.url,
+        "parentId": x.parentId,
+        "createdAt": x.createdAt,
+        "children": parseChildren
+    }
+    return result2
   })
   return resultEvents
   }

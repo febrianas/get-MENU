@@ -1,4 +1,4 @@
-import { Repository } from 'typeorm';
+import { Not, Repository } from 'typeorm';
 import { Get, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Event } from './entities/event.entity';
@@ -9,11 +9,15 @@ export class EventsService {
   constructor(
     @InjectRepository(Event)
     private eventRepository: Repository<Event>,
+    @InjectRepository(Workshop)
     private workShopRepository: Repository<Workshop>,
   ) {}
 
-  getWarmupEvents() {
-    return this.eventRepository.find();
+  async getWarmupEvents()  {
+    let tes = await this.eventRepository.find();
+    let tes1 = this.eventRepository.createQueryBuilder('a');
+    let hasil = await tes1.getRawMany()
+    return hasil;
   }
 
   /*
@@ -94,17 +98,17 @@ export class EventsService {
 
   @Get('events')
   async getEventsWithWorkshops() {
-    const queryEvents = this.eventRepository
-      .createQueryBuilder('a')
-    const dataEvents = await queryEvents.getRawMany();
-
-    const queryChilldren = this.workShopRepository
-    .createQueryBuilder('a')
-    const dataChilldren = await queryChilldren.getRawMany();
-    const resultEvents = dataEvents.map(function (x) {
-      const parseChildren = dataChilldren.find((ld) => ld.eventId === x.id);
-        x.workshops = parseChildren
-        return x
+    const queryEvents = await this.eventRepository.find()
+    const queryChilldren = await this.workShopRepository.find()
+    const resultEvents = queryEvents.map(function (x) {
+      const parseChildren = queryChilldren.find((ld) => ld.eventId === x.id);
+      let result = {
+        id:x.id,
+        name:x.name,
+        createdAt:x.createdAt,
+        workshop:parseChildren
+      }
+        return result
       })
     return resultEvents
   }
@@ -176,22 +180,22 @@ export class EventsService {
      */
   @Get('futureevents')
   async getFutureEventWithWorkshops() {
-    let today = new Date();
-    const dateToday = new Date(today).setHours(0, 0, 0, 0);
-    const queryEvents = this.eventRepository
-      .createQueryBuilder()
-      .where('a.createdAt > :createdAt',{
-        createdAt:dateToday
-      })
-      .andWhere('id > 1')
-    const dataEvents = await queryEvents.getRawMany();
+    const queryEvents = await this.eventRepository.find({
+      where:{
+        id:Not(1)
+      }
+    })
 
-    const queryChilldren = this.workShopRepository
-    .createQueryBuilder('a')
-    const dataChilldren = await queryChilldren.getRawMany();
-    const resultEvents = dataEvents.map(function (x) {
-      const parseChildren = dataChilldren.find((ld) => ld.eventId === x.id);
-      x.workshops = parseChildren
+    const queryChilldren = await this.workShopRepository.find()
+    const resultEvents = queryEvents.map(function (x) {
+      const parseChildren = queryChilldren.find((ld) => ld.eventId === x.id);
+      let result = {
+        id:x.id,
+        name:x.name,
+        createdAt:x.createdAt,
+        workshop:parseChildren
+      }
+      return result
     })
   return resultEvents
   }
